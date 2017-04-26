@@ -22,7 +22,7 @@ END_PATH = APP_PATH+'/end'
 ALPHABET_DEFAULT = string.ascii_letters + string.digits + '+/'
 RUN_ID_LEN = 24
 
-ARG_DEFAULTS = {'domain':'nstoler.com', 'project':'et', 'script':'phone.py', 'version':'0.0',
+ARG_DEFAULTS = {'domain':'nstoler.com', 'project':'ET', 'script':'phone.py', 'version':'0.0',
                 'secure':True, 'log':sys.stderr, 'volume':logging.ERROR}
 DESCRIPTION = """"""
 
