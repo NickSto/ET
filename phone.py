@@ -71,9 +71,11 @@ def send_start(project, script, version, domain=DOMAIN, secure=True, test=False)
   return run_id
 
 
-def send_end(project, script, version, run_id, run_time, input_size, domain=DOMAIN, secure=True,
-             test=False):
-  run_data = {'id':run_id, 'time':run_time, 'input_size':input_size}
+def send_end(project, script, version, run_id, run_time, optional_run_data={}, domain=DOMAIN,
+             secure=True, test=False):
+  """Send data about the end of a run."""
+  run_data = {'id':run_id, 'time':run_time}
+  run_data.update(optional_run_data)
   data = {'project':project, 'script':script, 'version':version, 'test':test, 'run':run_data}
   data_json = json.dumps(data)
   send_data(domain, END_PATH, data_json, secure=secure)
