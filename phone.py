@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 import sys
+import ssl
 import json
 import errno
 import string
@@ -20,7 +21,8 @@ RUN_END_PATH = APP_PATH+'/run_end'
 ALPHABET_DEFAULT = string.ascii_letters + string.digits + '+/'
 RUN_ID_LEN = 24
 
-ARG_DEFAULTS = {'domain':'nstoler.com', 'log':sys.stderr, 'volume':logging.ERROR}
+ARG_DEFAULTS = {'domain':'nstoler.com', 'project':'et', 'script':'phone.py', 'version':'0.0',
+                'secure':True, 'log':sys.stderr, 'volume':logging.ERROR}
 DESCRIPTION = """"""
 
 
@@ -29,12 +31,16 @@ def make_argparser():
   parser = argparse.ArgumentParser(description=DESCRIPTION)
   parser.set_defaults(**ARG_DEFAULTS)
 
-  parser.add_argument('-d', '--domain',
-    help='')
+  parser.add_argument('-d', '--domain')
+  parser.add_argument('-p', '--project')
+  parser.add_argument('-s', '--script')
+  parser.add_argument('-v', '--version')
+  parser.add_argument('-i', '--insecure', dest='secure', action='store_false',
+    help='Don\'t check TLS certificates.')
   parser.add_argument('-l', '--log', type=argparse.FileType('w'),
     help='Print log messages to this file instead of to stderr. Warning: Will overwrite the file.')
   parser.add_argument('-q', '--quiet', dest='volume', action='store_const', const=logging.CRITICAL)
-  parser.add_argument('-v', '--verbose', dest='volume', action='store_const', const=logging.INFO)
+  parser.add_argument('-V', '--verbose', dest='volume', action='store_const', const=logging.INFO)
   parser.add_argument('-D', '--debug', dest='volume', action='store_const', const=logging.DEBUG)
 
   return parser
@@ -48,30 +54,32 @@ def main(argv):
   logging.basicConfig(stream=args.log, level=args.volume, format='%(message)s')
   tone_down_logger()
 
-  scheme, domain, path = split_url(args.url)
-
-  if scheme != 'https':
-    fail('URL must be https.')
+  send_start(args.domain, args.project, args.script, args.version, secure=args.secure)
 
 
-def send_invocation(domain, project, script, version):
+def send_start(domain, project, script, version, secure=True):
   data = {'project':project, 'script':script, 'version':version}
   run_id = make_blob(RUN_ID_LEN)
   data['run'] = {'id':run_id}
   data_json = json.dumps(data)
-  send_data(domain, INVOCATION_PATH, data_json)
+  send_data(domain, INVOCATION_PATH, data_json, secure=secure)
   return run_id
 
 
-def send_run_end(domain, project, script, version, run_id, run_time, input_size):
+def send_run_end(domain, project, script, version, run_id, run_time, input_size, secure=True):
   run_data = {'id':run_id, 'time':run_time, 'input_size':input_size}
   data = {'project':project, 'script':script, 'version':version, 'run':run_data}
   data_json = json.dumps(data)
-  send_data(domain, RUN_END_PATH, data_json)
+  send_data(domain, RUN_END_PATH, data_json, secure=secure)
 
 
-def send_data(domain, path, data):
-  conex = httplib.HTTPSConnection(domain)
+def send_data(domain, path, data, secure=True):
+  if secure:
+    conex = httplib.HTTPSConnection(domain)
+  else:
+    context = ssl._create_unverified_context()
+    conex = httplib.HTTPSConnection(domain, context=context)
+  logging.info('Sending to https://{}{}:\n{}'.format(domain, path, data))
   try:
     conex.request('POST', path, data)
   except socket.gaierror:
