@@ -1,13 +1,13 @@
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
-from traffic.lib import add_visit
+from traffic.lib import add_and_get_visit
 from .models import Event
 import json
 
 
-@add_visit
+@add_and_get_visit
 @csrf_exempt
-def record(request, type):
+def record(request, visit, type):
   if not valid_content_type(request.content_type, request.content_params):
     return fail('Wrong Content-Type ("{}")'.format(request.META.get('CONTENT_TYPE')))
   data = json.loads(str(request.body, 'utf8'))
@@ -18,7 +18,7 @@ def record(request, type):
     run_id = data['run']['id']
   except KeyError:
     return fail('Missing keys in POST data ("{}")\n'.format(str(request.body, 'utf8')))
-  event = Event(type=type, project=project, script=script, version=version, run_id=run_id)
+  event = Event(type=type, visit=visit, project=project, script=script, version=version, run_id=run_id)
   if type == 'start':
     pass
   elif type == 'end':

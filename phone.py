@@ -87,6 +87,8 @@ def send_data(domain, path, data, secure=True):
     sys.stderr.write('Error requesting "https://{}{}"\n'.format(domain, path))
     raise
   response = conex.getresponse()
+  logging.info('HTTP response {}'.format(response.status))
+  logging.info(response.read())
   if response.status != 200:
     fail('Sending data failed: HTTP response {}.'.format(response.status))
   else:
