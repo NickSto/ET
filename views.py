@@ -17,12 +17,22 @@ def record(request, visit, type):
     version = data['version']
     run_id = data['run']['id']
   except KeyError:
-    return fail('Missing keys in POST data ("{}")\n'.format(str(request.body, 'utf8')))
-  event = Event(type=type, visit=visit, project=project, script=script, version=version, run_id=run_id)
+    return fail('Missing keys in POST data ("{}")'.format(str(request.body, 'utf8')))
+  test = data.get('test', False)
+  event = Event(type=type,
+                visit=visit,
+                project=project,
+                script=script,
+                version=version,
+                test=test,
+                run_id=run_id)
   if type == 'start':
     pass
   elif type == 'end':
-    event.run_data = json.dumps(data['run'])
+    try:
+      event.run_data = json.dumps(data['run'])
+    except KeyError:
+      return fail('Missing keys in POST data ("{}")'.format(str(request.body, 'utf8')))
   else:
     return fail('Unrecognized event type "{}"'.format(type))
   event.save()

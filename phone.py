@@ -24,7 +24,7 @@ ALPHABET_DEFAULT = string.ascii_letters + string.digits + '+/'
 RUN_ID_LEN = 24
 
 ARG_DEFAULTS = {'domain':DOMAIN, 'project':'ET', 'script':'phone.py', 'version':'0.0',
-                'secure':True, 'log':sys.stderr, 'volume':logging.ERROR}
+                'secure':True, 'test':False, 'log':sys.stderr, 'volume':logging.ERROR}
 DESCRIPTION = """"""
 
 
@@ -37,6 +37,8 @@ def make_argparser():
   parser.add_argument('-p', '--project')
   parser.add_argument('-s', '--script')
   parser.add_argument('-v', '--version')
+  parser.add_argument('-t', '--test', action='store_true',
+    help='Mark this run as a test.')
   parser.add_argument('-i', '--insecure', dest='secure', action='store_false',
     help='Don\'t check TLS certificates.')
   parser.add_argument('-l', '--log', type=argparse.FileType('w'),
@@ -59,8 +61,8 @@ def main(argv):
   send_start(args.domain, args.project, args.script, args.version, secure=args.secure)
 
 
-def send_start(project, script, version, domain=DOMAIN, secure=True):
-  data = {'project':project, 'script':script, 'version':version}
+def send_start(project, script, version, domain=DOMAIN, secure=True, test=False):
+  data = {'project':project, 'script':script, 'version':version, 'test':test}
   run_id = make_blob(RUN_ID_LEN)
   data['run'] = {'id':run_id}
   data_json = json.dumps(data)
@@ -68,9 +70,10 @@ def send_start(project, script, version, domain=DOMAIN, secure=True):
   return run_id
 
 
-def send_end(project, script, version, run_id, run_time, input_size, domain=DOMAIN, secure=True):
+def send_end(project, script, version, run_id, run_time, input_size, domain=DOMAIN, secure=True,
+             test=False):
   run_data = {'id':run_id, 'time':run_time, 'input_size':input_size}
-  data = {'project':project, 'script':script, 'version':version, 'run':run_data}
+  data = {'project':project, 'script':script, 'version':version, 'test':test, 'run':run_data}
   data_json = json.dumps(data)
   send_data(domain, END_PATH, data_json, secure=secure)
 
@@ -124,7 +127,7 @@ def fail(message):
   if __name__ == '__main__':
     sys.exit(1)
   else:
-    raise Exception('Unrecoverable error')
+    raise Exception(message)
 
 
 if __name__ == '__main__':
