@@ -58,7 +58,8 @@ def main(argv):
   logging.basicConfig(stream=args.log, level=args.volume, format='%(message)s')
   tone_down_logger()
 
-  send_start(args.domain, args.project, args.script, args.version, secure=args.secure)
+  send_start(args.project, args.script, args.version, domain=args.domain, secure=args.secure,
+             test=args.test)
 
 
 def send_start(project, script, version, domain=DOMAIN, secure=True, test=False):
