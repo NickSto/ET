@@ -15,9 +15,10 @@ import httplib
 import urlparse
 import argparse
 
+HEADERS = {'User-Agent':'ET phone home', 'Content-Type':'application/json; charset=utf-8'}
 APP_PATH = '/ET'
-INVOCATION_PATH = APP_PATH+'/start'
-RUN_END_PATH = APP_PATH+'/run_end'
+START_PATH = APP_PATH+'/start'
+END_PATH = APP_PATH+'/end'
 ALPHABET_DEFAULT = string.ascii_letters + string.digits + '+/'
 RUN_ID_LEN = 24
 
@@ -62,15 +63,15 @@ def send_start(domain, project, script, version, secure=True):
   run_id = make_blob(RUN_ID_LEN)
   data['run'] = {'id':run_id}
   data_json = json.dumps(data)
-  send_data(domain, INVOCATION_PATH, data_json, secure=secure)
+  send_data(domain, START_PATH, data_json, secure=secure)
   return run_id
 
 
-def send_run_end(domain, project, script, version, run_id, run_time, input_size, secure=True):
+def send_end(domain, project, script, version, run_id, run_time, input_size, secure=True):
   run_data = {'id':run_id, 'time':run_time, 'input_size':input_size}
   data = {'project':project, 'script':script, 'version':version, 'run':run_data}
   data_json = json.dumps(data)
-  send_data(domain, RUN_END_PATH, data_json, secure=secure)
+  send_data(domain, END_PATH, data_json, secure=secure)
 
 
 def send_data(domain, path, data, secure=True):
@@ -81,7 +82,7 @@ def send_data(domain, path, data, secure=True):
     conex = httplib.HTTPSConnection(domain, context=context)
   logging.info('Sending to https://{}{}:\n{}'.format(domain, path, data))
   try:
-    conex.request('POST', path, data)
+    conex.request('POST', path, data, HEADERS)
   except socket.gaierror:
     sys.stderr.write('Error requesting "https://{}{}"\n'.format(domain, path))
     raise
