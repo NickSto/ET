@@ -15,14 +15,15 @@ import httplib
 import urlparse
 import argparse
 
-HEADERS = {'User-Agent':'ET phone home', 'Content-Type':'application/json; charset=utf-8'}
+DOMAIN = 'nstoler.com'
 APP_PATH = '/ET'
 START_PATH = APP_PATH+'/start'
 END_PATH = APP_PATH+'/end'
+HEADERS = {'User-Agent':'ET phone home', 'Content-Type':'application/json; charset=utf-8'}
 ALPHABET_DEFAULT = string.ascii_letters + string.digits + '+/'
 RUN_ID_LEN = 24
 
-ARG_DEFAULTS = {'domain':'nstoler.com', 'project':'ET', 'script':'phone.py', 'version':'0.0',
+ARG_DEFAULTS = {'domain':DOMAIN, 'project':'ET', 'script':'phone.py', 'version':'0.0',
                 'secure':True, 'log':sys.stderr, 'volume':logging.ERROR}
 DESCRIPTION = """"""
 
@@ -58,7 +59,7 @@ def main(argv):
   send_start(args.domain, args.project, args.script, args.version, secure=args.secure)
 
 
-def send_start(domain, project, script, version, secure=True):
+def send_start(project, script, version, domain=DOMAIN, secure=True):
   data = {'project':project, 'script':script, 'version':version}
   run_id = make_blob(RUN_ID_LEN)
   data['run'] = {'id':run_id}
@@ -67,7 +68,7 @@ def send_start(domain, project, script, version, secure=True):
   return run_id
 
 
-def send_end(domain, project, script, version, run_id, run_time, input_size, secure=True):
+def send_end(project, script, version, run_id, run_time, input_size, domain=DOMAIN, secure=True):
   run_data = {'id':run_id, 'time':run_time, 'input_size':input_size}
   data = {'project':project, 'script':script, 'version':version, 'run':run_data}
   data_json = json.dumps(data)
