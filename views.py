@@ -18,12 +18,14 @@ def record(request, visit, type):
     run_id = data['run_id']
   except KeyError:
     return fail('Missing keys in POST data ("{}")'.format(str(request.body, 'utf8')))
+  platform = data.get('platform') or ''
   test = data.get('test', False)
   event = Event(type=type,
                 visit=visit,
                 project=project,
                 script=script,
                 version=version,
+                platform=platform,
                 test=test,
                 run_id=run_id)
   if type == 'start':

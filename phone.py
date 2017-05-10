@@ -101,11 +101,12 @@ def send_start(script_path,
                version,
                domain=DEFAULT_DOMAIN,
                secure=DEFAULT_SECURE,
+               platform=None,
                test=False):
   script = os.path.basename(script_path)
   run_id = make_blob(RUN_ID_LEN)
   data = {'project':version.project, 'script':script, 'version':version.version, 'test':test,
-          'run_id':run_id}
+          'platform':platform, 'run_id':run_id}
   data_json = json.dumps(data)
   send_data(domain, START_PATH, data_json, secure=secure)
   return run_id
@@ -118,13 +119,14 @@ def send_end(script_path,
              optional_run_data={},
              domain=DEFAULT_DOMAIN,
              secure=DEFAULT_SECURE,
+             platform=None,
              test=False):
   """Send data about the end of a run."""
   script = os.path.basename(script_path)
   run_data = {'time':run_time}
   run_data.update(optional_run_data)
   data = {'project':version.project, 'script':script, 'version':version.version, 'test':test,
-          'run_id':run_id, 'run':run_data}
+          'platform':platform, 'run_id':run_id, 'run':run_data}
   data_json = json.dumps(data)
   send_data(domain, END_PATH, data_json, secure=secure)
 

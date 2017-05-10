@@ -8,5 +8,6 @@ class Event(ModelMixin, models.Model):
   script = models.CharField(max_length=200)
   version = models.CharField(max_length=200)
   run_id = models.CharField(max_length=32)
+  platform = models.CharField(max_length=127)
   test = models.BooleanField(default=False)
   run_data = models.TextField()
