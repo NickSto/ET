@@ -15,7 +15,7 @@ def record(request, visit, type):
     project = data['project']
     script = data['script']
     version = data['version']
-    run_id = data['run']['id']
+    run_id = data['run_id']
   except KeyError:
     return fail('Missing keys in POST data ("{}")'.format(str(request.body, 'utf8')))
   test = data.get('test', False)
@@ -32,7 +32,7 @@ def record(request, visit, type):
     try:
       event.run_data = json.dumps(data['run'])
     except KeyError:
-      return fail('Missing keys in POST data ("{}")'.format(str(request.body, 'utf8')))
+      return fail('Missing "run" key in POST data ("{}")'.format(str(request.body, 'utf8')))
   else:
     return fail('Unrecognized event type "{}"'.format(type))
   event.save()
