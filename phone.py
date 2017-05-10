@@ -15,7 +15,8 @@ import httplib
 import urlparse
 import argparse
 
-DOMAIN = 'nstoler.com'
+DEFAULT_DOMAIN = 'nstoler.com'
+DEFAULT_SECURE = True
 APP_PATH = '/ET'
 START_PATH = APP_PATH+'/start'
 END_PATH = APP_PATH+'/end'
@@ -23,8 +24,8 @@ HEADERS = {'User-Agent':'ET phone home', 'Content-Type':'application/json; chars
 ALPHABET_DEFAULT = string.ascii_letters + string.digits + '+/'
 RUN_ID_LEN = 24
 
-ARG_DEFAULTS = {'domain':DOMAIN, 'project':'ET', 'script':'phone.py', 'version':'0.0',
-                'run_data':'{}', 'secure':True, 'test':False, 'log':sys.stderr,
+ARG_DEFAULTS = {'domain':DEFAULT_DOMAIN, 'project':'ET', 'script':'phone.py', 'version':'0.0',
+                'run_data':'{}', 'secure':DEFAULT_SECURE, 'test':False, 'log':sys.stderr,
                 'volume':logging.ERROR}
 DESCRIPTION = """"""
 
@@ -51,6 +52,8 @@ def make_argparser():
     help='Tool-specific data about the run, like input size, in JSON format.')
   parser.add_argument('-T', '--test', action='store_true',
     help='Mark this run as a test.')
+  parser.add_argument('-S', '--secure', action='store_true',
+    help='Enforce checking TLS certificates.')
   parser.add_argument('-I', '--insecure', dest='secure', action='store_false',
     help='Don\'t check TLS certificates.')
   parser.add_argument('-l', '--log', type=argparse.FileType('w'),
@@ -98,8 +101,8 @@ def main(argv):
 def send_start(project,
                script,
                version,
-               domain=DOMAIN,
-               secure=True,
+               domain=DEFAULT_DOMAIN,
+               secure=DEFAULT_SECURE,
                test=False):
   data = {'project':project, 'script':script, 'version':version, 'test':test}
   run_id = make_blob(RUN_ID_LEN)
@@ -115,8 +118,8 @@ def send_end(project,
              run_id,
              run_time,
              optional_run_data={},
-             domain=DOMAIN,
-             secure=True,
+             domain=DEFAULT_DOMAIN,
+             secure=DEFAULT_SECURE,
              test=False):
   """Send data about the end of a run."""
   run_data = {'id':run_id, 'time':run_time}
@@ -126,7 +129,7 @@ def send_end(project,
   send_data(domain, END_PATH, data_json, secure=secure)
 
 
-def send_data(domain, path, data, secure=True):
+def send_data(domain, path, data, secure=DEFAULT_SECURE):
   if secure:
     conex = httplib.HTTPSConnection(domain)
   else:
