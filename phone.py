@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
+import os
 import sys
 import ssl
 import json
@@ -74,9 +75,8 @@ def main(argv):
   tone_down_logger()
 
   if args.event_type == 'start':
-    print(send_start(args.project,
-                     args.script,
-                     args.version,
+    print(send_start(args.script,
+                     args,
                      domain=args.domain,
                      secure=args.secure,
                      test=args.test))
@@ -87,9 +87,8 @@ def main(argv):
       run_data = json.loads(args.run_data)
     except ValueError:
       fail('Invalid --run-data. Must be valid JSON. Saw: "{}"'.format(args.run_data))
-    send_end(args.project,
-             args.script,
-             args.version,
+    send_end(args.script,
+             args,
              args.run_id,
              args.run_time,
              run_data,
@@ -98,13 +97,13 @@ def main(argv):
              test=args.test)
 
 
-def send_start(project,
-               script,
+def send_start(script_path,
                version,
                domain=DEFAULT_DOMAIN,
                secure=DEFAULT_SECURE,
                test=False):
-  data = {'project':project, 'script':script, 'version':version, 'test':test}
+  script = os.path.basename(script_path)
+  data = {'project':version.project, 'script':script, 'version':version.version, 'test':test}
   run_id = make_blob(RUN_ID_LEN)
   data['run'] = {'id':run_id}
   data_json = json.dumps(data)
@@ -112,8 +111,7 @@ def send_start(project,
   return run_id
 
 
-def send_end(project,
-             script,
+def send_end(script_path,
              version,
              run_id,
              run_time,
@@ -122,9 +120,11 @@ def send_end(project,
              secure=DEFAULT_SECURE,
              test=False):
   """Send data about the end of a run."""
+  script = os.path.basename(script_path)
   run_data = {'id':run_id, 'time':run_time}
   run_data.update(optional_run_data)
-  data = {'project':project, 'script':script, 'version':version, 'test':test, 'run':run_data}
+  data = {'project':version.project, 'script':script, 'version':version.version, 'test':test,
+          'run':run_data}
   data_json = json.dumps(data)
   send_data(domain, END_PATH, data_json, secure=secure)
 
