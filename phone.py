@@ -102,14 +102,24 @@ def send_start(script_path,
                domain=DEFAULT_DOMAIN,
                secure=DEFAULT_SECURE,
                platform=None,
-               test=False):
-  script = os.path.basename(script_path)
-  run_id = make_blob(RUN_ID_LEN)
-  data = {'project':version.project, 'script':script, 'version':version.version, 'test':test,
-          'platform':platform, 'run_id':run_id}
-  data_json = json.dumps(data)
-  send_data(domain, START_PATH, data_json, secure=secure)
-  return run_id
+               test=False,
+               fail='exception'):
+  try:
+    script = os.path.basename(script_path)
+    run_id = make_blob(RUN_ID_LEN)
+    data = {'project':version.project, 'script':script, 'version':version.version, 'test':test,
+            'platform':platform, 'run_id':run_id}
+    data_json = json.dumps(data)
+    send_data(domain, START_PATH, data_json, secure=secure)
+    return run_id
+  except Exception as exception:
+    if fail.startswith('except'):
+      raise
+    elif fail.startswith('warn'):
+      logging.warn('Exception encountered in phone.send_start():\n'+str(exception))
+    elif fail == 'silent':
+      pass
+    return None
 
 
 def send_end(script_path,
@@ -120,15 +130,28 @@ def send_end(script_path,
              domain=DEFAULT_DOMAIN,
              secure=DEFAULT_SECURE,
              platform=None,
-             test=False):
+             test=False,
+             fail='exception'):
   """Send data about the end of a run."""
-  script = os.path.basename(script_path)
-  run_data = {'time':run_time}
-  run_data.update(optional_run_data)
-  data = {'project':version.project, 'script':script, 'version':version.version, 'test':test,
-          'platform':platform, 'run_id':run_id, 'run':run_data}
-  data_json = json.dumps(data)
-  send_data(domain, END_PATH, data_json, secure=secure)
+  if run_id is None:
+    return False
+  try:
+    script = os.path.basename(script_path)
+    run_data = {'time':run_time}
+    run_data.update(optional_run_data)
+    data = {'project':version.project, 'script':script, 'version':version.version, 'test':test,
+            'platform':platform, 'run_id':run_id, 'run':run_data}
+    data_json = json.dumps(data)
+    send_data(domain, END_PATH, data_json, secure=secure)
+    return True
+  except Exception as exception:
+    if fail.startswith('except'):
+      raise
+    elif fail.startswith('warn'):
+      logging.warn('Exception encountered in phone.send_start():\n'+str(exception))
+    elif fail == 'silent':
+      pass
+    return None
 
 
 def send_data(domain, path, data, secure=DEFAULT_SECURE):
