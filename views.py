@@ -1,6 +1,7 @@
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
-from traffic.lib import add_and_get_visit
+from traffic.lib import add_visit, add_and_get_visit
+from myadmin.lib import require_admin_and_privacy
 from .models import Event
 import json
 
@@ -40,6 +41,25 @@ def record(request, visit, type):
   event.save()
   output = 'project:\t'+project+'\nscript:\t'+script+'\nversion:\t'+version+'\nrun_id:\t'+run_id+'\n'
   return HttpResponse(output, content_type='text/plain; charset=UTF-8')
+
+
+@add_visit
+@require_admin_and_privacy
+def monitor(request):
+  EVENTS_PER_PAGE = 50
+  # Get query parameters.
+  params = request.GET
+  page = int(params.get('p', 1))
+  start = EVENTS_PER_PAGE*(page-1)
+  end = EVENTS_PER_PAGE*(page)
+  events = Event.objects.order_by('-id')[start:end]
+  events_strs = []
+  for event in events:
+    events_strs.append('{id}\t{type}\t{project}\t{script}\t{version}\t{platform}\t{test}\t'
+                      '{run_id}\t{visit_id}'.format(**vars(event)))
+    events_strs.append(event.run_data)
+    events_strs.append('')
+  return HttpResponse('\n'.join(events_strs), content_type='text/plain; charset=UTF-8')
 
 
 def fail(message):
