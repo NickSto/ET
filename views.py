@@ -1,14 +1,12 @@
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
-from traffic.lib import add_visit, add_and_get_visit
 from myadmin.lib import require_admin_and_privacy
 from .models import Event
 import json
 
 
-@add_and_get_visit
 @csrf_exempt
-def record(request, visit, type):
+def record(request, type):
   if not valid_content_type(request.content_type, request.content_params):
     return fail('Wrong Content-Type ("{}")'.format(request.META.get('CONTENT_TYPE')))
   data = json.loads(str(request.body, 'utf8'))
@@ -22,7 +20,7 @@ def record(request, visit, type):
   platform = data.get('platform') or ''
   test = data.get('test', False)
   event = Event(type=type,
-                visit=visit,
+                visit=request.visit,
                 project=project,
                 script=script,
                 version=version,
@@ -43,7 +41,6 @@ def record(request, visit, type):
   return HttpResponse(output, content_type='text/plain; charset=UTF-8')
 
 
-@add_visit
 @require_admin_and_privacy
 def monitor(request):
   EVENTS_PER_PAGE = 50
