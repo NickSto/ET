@@ -1,0 +1,83 @@
+{% extends 'bootstrap.tmpl' %}
+{% load staticfiles %}
+
+{% block title %}ET run reports{% endblock %}
+
+{% block stylesheet %}
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css?via=html">
+  <link rel="stylesheet" href="{% static 'ET/css/monitor.css' %}?via=html">
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+    {% if prev or next %}
+      <div class="buttons">
+        {% if prev %}
+          <a class="btn btn-default" href="{% url 'ET:monitor' %}?p={{ prev }}">&lt; Earlier</a>
+        {% endif %}
+        {% if next %}
+          <a class="btn btn-default" href="{% url 'ET:monitor' %}?p={{ next }}">Later &gt;</a>
+        {% endif %}
+      </div>
+    {% endif %}
+    <section class="panel">
+      <div class="panel-heading">
+        <h4>Events
+          <small>
+            {% if end %}
+              {{ start }} to {{ end }}
+            {% endif %}
+          </small>
+        </h4>
+      </div>
+      <table id="events" class="panel-body table table-bordered table-condensed table-hover">
+        <tbody>
+          <tr class="names">
+            <td>id</td>
+            <td>type</td>
+            <td>project</td>
+            <td>script</td>
+            <td>version</td>
+            <td>platform</td>
+            <td>test</td>
+            <td>run_id</td>
+            <td>visit_id</td>
+          </tr>
+          {% for event in events %}
+            <tr class="values new-run">
+              <td>{{ event.id }}</td>
+              <td>{{ event.type }}</td>
+              <td>{{ event.project }}</td>
+              <td>{{ event.script }}</td>
+              <td>{{ event.version }}</td>
+              <td>{{ event.platform }}</td>
+              <td>{{ event.test }}</td>
+              <td>{{ event.run_id }}</td>
+              <td>{{ event.visit_id }}</td>
+            </tr>
+            {% if event.run_data %}
+              <tr>
+                <td></td>
+                <td class="name">run_data</td>
+                <td colspan="7">{{ event.run_data }}</td>
+              </tr>
+            {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+    {% if prev or next %}
+      <div class="buttons">
+        {% if prev %}
+          <a class="btn btn-default" href="{% url 'ET:monitor' %}?p={{ prev }}">&lt; Earlier</a>
+        {% endif %}
+        {% if next %}
+          <a class="btn btn-default" href="{% url 'ET:monitor' %}?p={{ next }}">Later &gt;</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+{% endblock content %}
+
+{% block javascript %}
+{% endblock %}

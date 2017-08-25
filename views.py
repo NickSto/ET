@@ -1,4 +1,5 @@
 from django.http import HttpResponse, HttpResponseBadRequest
+from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from myadmin.lib import require_admin_and_privacy
 from .models import Event
@@ -43,20 +44,37 @@ def record(request, type):
 
 @require_admin_and_privacy
 def monitor(request):
-  EVENTS_PER_PAGE = 50
+  DEFAULT_PER_PAGE = 50
   # Get query parameters.
   params = request.GET
   page = int(params.get('p', 1))
-  start = EVENTS_PER_PAGE*(page-1)
-  end = EVENTS_PER_PAGE*(page)
+  per_page = int(params.get('per_page', DEFAULT_PER_PAGE))
+  format = params.get('format', 'html')
+  total_events = Event.objects.count()
+  start = per_page*(page-1)
+  end = per_page*page
   events = Event.objects.order_by('-id')[start:end]
-  events_strs = []
-  for event in events:
-    events_strs.append('{id}\t{type}\t{project}\t{script}\t{version}\t{platform}\t{test}\t'
-                      '{run_id}\t{visit_id}'.format(**vars(event)))
-    events_strs.append(event.run_data)
-    events_strs.append('')
-  return HttpResponse('\n'.join(events_strs), content_type='text/plain; charset=UTF-8')
+  if format == 'plain':
+    events_strs = []
+    for event in events:
+      events_strs.append('{id}\t{type}\t{project}\t{script}\t{version}\t{platform}\t{test}\t'
+                        '{run_id}\t{visit_id}'.format(**vars(event)))
+      events_strs.append(event.run_data)
+      events_strs.append('')
+    return HttpResponse('\n'.join(events_strs), content_type='text/plain; charset=UTF-8')
+  else:
+    context = {'events':events}
+    if start == 0 and end >= total_events:
+      context['start'] = None
+      context['end'] = None
+    else:
+      context['start'] = max(1, total_events-end+1)
+      context['end'] = total_events-start
+    if page > 1:
+      context['prev'] = page-1
+    if end < total_events:
+      context['next'] = page+1
+    return render(request, 'ET/monitor.tmpl', context)
 
 
 def fail(message):
