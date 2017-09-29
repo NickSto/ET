@@ -30,8 +30,9 @@
         </h4>
       </div>
       <table id="events" class="panel-body table table-bordered table-condensed table-hover">
-        <tbody>
+        <thead>
           <tr class="names">
+            <td></td>
             <td>id</td>
             <td>type</td>
             <td>project</td>
@@ -40,10 +41,15 @@
             <td>platform</td>
             <td>test</td>
             <td>run_id</td>
-            <td>visit_id</td>
           </tr>
-          {% for event in events %}
+        </thead>
+        {% for event in events %}
+          <tbody>
             <tr class="values new-run">
+              <td rowspan=0>
+                <p><a href="http://whatismyipaddress.com/ip/{{ event.visit.visitor.ip }}" rel="noreferrer" target="_blank">{{ event.visit.visitor.ip }}</a></p>
+                <p>{{ event.visit.timestamp }} UTC</p>
+              </td>
               <td>{{ event.id }}</td>
               <td>{{ event.type }}</td>
               <td>{{ event.project }}</td>
@@ -52,17 +58,14 @@
               <td>{{ event.platform }}</td>
               <td>{{ event.test }}</td>
               <td>{{ event.run_id }}</td>
-              <td>{{ event.visit_id }}</td>
             </tr>
             {% if event.run_data %}
               <tr>
-                <td></td>
-                <td class="name">run_data</td>
-                <td colspan="7">{{ event.run_data }}</td>
+                <td colspan="8"><code>{{ event.run_data }}</code></td>
               </tr>
             {% endif %}
-          {% endfor %}
-        </tbody>
+          </tbody>
+        {% endfor %}
       </table>
     </section>
     {% if prev or next %}
