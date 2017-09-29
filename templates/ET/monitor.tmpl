@@ -33,7 +33,6 @@
         <thead>
           <tr class="names">
             <td></td>
-            <td>id</td>
             <td>type</td>
             <td>project</td>
             <td>script</td>
@@ -44,13 +43,12 @@
           </tr>
         </thead>
         {% for event in events %}
-          <tbody>
-            <tr class="values new-run">
+          <tbody class="entry {% cycle 'unshaded' 'shaded' %}">
+            <tr class="values">
               <td rowspan=0>
                 <p><a href="http://whatismyipaddress.com/ip/{{ event.visit.visitor.ip }}" rel="noreferrer" target="_blank">{{ event.visit.visitor.ip }}</a></p>
                 <p>{{ event.visit.timestamp }} UTC</p>
               </td>
-              <td>{{ event.id }}</td>
               <td>{{ event.type }}</td>
               <td>{{ event.project }}</td>
               <td>{{ event.script }}</td>
@@ -61,7 +59,7 @@
             </tr>
             {% if event.run_data %}
               <tr>
-                <td colspan="8"><code>{{ event.run_data }}</code></td>
+                <td colspan="7"><code>{{ event.run_data }}</code></td>
               </tr>
             {% endif %}
           </tbody>

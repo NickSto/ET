@@ -3,6 +3,14 @@
   margin-bottom: 15px;
 }
 
-.new-run {
-  border-top: 2px solid #ccc;
+tbody + tbody.entry {
+  border-top-style: none;
+}
+
+.table > tbody.entry > tr > td {
+  border-top-style: none;
+}
+
+.shaded {
+  background-color: #f8f8f8;
 }
