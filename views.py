@@ -59,7 +59,7 @@ def monitor(request):
     for event in events:
       timestamp = event.visit.timestamp.timestamp()
       events_strs.append('{id}\t{0}\t{1}\t{type}\t{project}\t{script}\t{version}\t{platform}\t'
-                         '{test}\t{run_id}\t{visit_id}\t{run_data}'
+                         '{test}\t{run_id}\t{run_data}'
                          .format(timestamp, event.visit.visitor.ip, **vars(event)))
     return HttpResponse('\n'.join(events_strs), content_type='text/plain; charset=UTF-8')
   else:
