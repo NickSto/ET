@@ -57,10 +57,10 @@ def monitor(request):
   if format == 'plain':
     events_strs = []
     for event in events:
-      events_strs.append('{id}\t{type}\t{project}\t{script}\t{version}\t{platform}\t{test}\t'
-                        '{run_id}\t{visit_id}'.format(**vars(event)))
-      events_strs.append(event.run_data)
-      events_strs.append('')
+      timestamp = event.visit.timestamp.timestamp()
+      events_strs.append('{id}\t{0}\t{1}\t{type}\t{project}\t{script}\t{version}\t{platform}\t'
+                         '{test}\t{run_id}\t{visit_id}\t{run_data}'
+                         .format(timestamp, event.visit.visitor.ip, **vars(event)))
     return HttpResponse('\n'.join(events_strs), content_type='text/plain; charset=UTF-8')
   else:
     context = {'events':events}
