@@ -30,7 +30,7 @@ def record(request, type):
                 run_id=run_id)
   if type == 'start':
     pass
-  elif type == 'end':
+  elif type == 'end' or type == 'prelim':
     try:
       event.run_data = json.dumps(data['run'])
     except KeyError:

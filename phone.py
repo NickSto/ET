@@ -18,9 +18,7 @@ import argparse
 
 DEFAULT_DOMAIN = 'nstoler.com'
 DEFAULT_SECURE = True
-APP_PATH = '/ET'
-START_PATH = APP_PATH+'/start'
-END_PATH = APP_PATH+'/end'
+API_PATH_TEMPLATE = '/ET/{}'
 HEADERS = {'User-Agent':'ET phone home', 'Content-Type':'application/json; charset=utf-8'}
 ALPHABET_DEFAULT = string.ascii_letters + string.digits + '+/'
 RUN_ID_LEN = 24
@@ -36,7 +34,7 @@ def make_argparser():
   parser = argparse.ArgumentParser(description=DESCRIPTION)
   parser.set_defaults(**ARG_DEFAULTS)
 
-  parser.add_argument('event_type', choices=('start', 'end'))
+  parser.add_argument('event_type', choices=('start', 'prelim', 'end'))
   parser.add_argument('-d', '--domain',
     help='Default: %(default)s')
   parser.add_argument('-p', '--project',
@@ -74,87 +72,121 @@ def main(argv):
   logging.basicConfig(stream=args.log, level=args.volume, format='%(message)s')
   tone_down_logger()
 
-  if args.event_type == 'start':
-    print(send_start(args.script,
-                     args,
-                     domain=args.domain,
-                     secure=args.secure,
-                     test=args.test))
-  elif args.event_type == 'end':
-    if not (args.run_id and args.run_time):
-      fail('--run-id and --run-time and required for event_type "end".')
+  call = Call(args.script,
+              args,
+              run_id=args.run_id,
+              domain=args.domain,
+              secure=args.secure,
+              test=args.test)
+
+  if args.run_data:
     try:
       run_data = json.loads(args.run_data)
     except ValueError:
       fail('Invalid --run-data. Must be valid JSON. Saw: "{}"'.format(args.run_data))
-    send_end(args.script,
-             args,
-             args.run_id,
-             args.run_time,
-             run_data,
-             domain=args.domain,
-             secure=args.secure,
-             test=args.test)
+
+  if args.event_type == 'start':
+    print(call.send_data(args.event_type))
+  elif args.event_type == 'prelim':
+    call.send_data(args.event_type, run_data=run_data)
+  elif args.event_type == 'end':
+    if not (args.run_id and args.run_time):
+      fail('--run-id and --run-time and required for event_type "end".')
+    call.send_data(args.event_type, run_data=run_data, run_time=args.run_time)
+  else:
+    fail('Unrecognized event type "{}".'.format(args.event_type))
 
 
-def send_start(script_path,
+class Call(object):
+
+  def __init__(self,
+               script_path,
                version,
+               run_id=None,
                domain=DEFAULT_DOMAIN,
                secure=DEFAULT_SECURE,
                platform=None,
                test=False,
                fail='exception'):
-  try:
-    script = os.path.basename(script_path)
-    run_id = make_blob(RUN_ID_LEN)
-    data = {'project':version.project, 'script':script, 'version':version.version, 'test':test,
-            'platform':platform, 'run_id':run_id}
-    data_json = json.dumps(data)
-    send_data(domain, START_PATH, data_json, secure=secure)
-    return run_id
-  except Exception as exception:
-    if fail.startswith('except'):
-      raise
-    elif fail.startswith('warn'):
-      logging.warn('Exception encountered in phone.send_start():\n'+str(exception))
-    elif fail == 'silent':
+    self.initialized = False
+    try:
+      if run_id is None:
+        run_id = make_blob(RUN_ID_LEN)
+      self.domain = domain
+      self.secure = secure
+      self.fail = fail
+      self.data = {
+        'run_id': run_id,
+        'project': version.project,
+        'script': os.path.basename(script_path),
+        'version': version.version,
+        'test': test,
+        'platform': platform
+      }
+      self.initialized = True
+    except Exception as exception:
+      if fail.startswith('except'):
+        raise
+      elif fail.startswith('warn'):
+        logging.warn('Exception encountered in phone.Call.__init__():\n'+str(exception))
+      elif fail == 'silent':
+        pass
+
+  def send_data(self, event_type, run_data={}, run_time=None):
+    """Send data about an event to the logging server.
+    The event_type must be one of "start", "prelim", or "end".
+    prelim: Send out some data before starting the script in earnest, in case it fails.
+      For example, gather the filesizes of the inputs. Do this before the main part of the code,
+      in case it throws an exception and we never get to send_end()"""
+    try:
+      if not self.initialized:
+        raise Exception('Call object not initialized. Aborting send_data()..')
+      # Validate inputs.
+      if event_type == 'start':
+        pass
+      elif event_type == 'end':
+        if run_time is None:
+          raise Exception('run_time argument required for "end" event.')
+      elif event_type == 'prelim':
+        if not run_data:
+          raise Exception('run_data argument required for "prelim" event.')
+      else:
+        raise ValueError('Invalid event type "{}".'.format(event_type))
+      # Assemble the data blob.
+      data = self.construct_data(event_type, run_time, run_data)
+      data_json = json.dumps(data)
+      path = API_PATH_TEMPLATE.format(event_type)
+      success = post_data(self.domain, path, data_json, secure=self.secure)
+    except Exception as exception:
+      if self.fail.startswith('except'):
+        raise
+      elif self.fail.startswith('warn'):
+        logging.warn('Exception encountered in phone.send_{0}():\n{1}'.format(event_type, exception))
+      elif self.fail == 'silent':
+        pass
+      return None
+    # Decide return value.
+    if success:
+      if event_type == 'start':
+        return self.data['run_id']
+      else:
+        return True
+    else:
+      return False
+
+  def construct_data(self, event_type, run_time=None, run_data={}):
+    data = self.data.copy()
+    if event_type == 'start':
       pass
-    return None
+    elif event_type == 'prelim':
+      data['run'] = run_data
+    elif event_type == 'end':
+      data['run'] = {'time':run_time}
+      data['run'].update(run_data)
+    return data
 
 
-def send_end(script_path,
-             version,
-             run_id,
-             run_time,
-             optional_run_data={},
-             domain=DEFAULT_DOMAIN,
-             secure=DEFAULT_SECURE,
-             platform=None,
-             test=False,
-             fail='exception'):
-  """Send data about the end of a run."""
-  if run_id is None:
-    return False
-  try:
-    script = os.path.basename(script_path)
-    run_data = {'time':run_time}
-    run_data.update(optional_run_data)
-    data = {'project':version.project, 'script':script, 'version':version.version, 'test':test,
-            'platform':platform, 'run_id':run_id, 'run':run_data}
-    data_json = json.dumps(data)
-    send_data(domain, END_PATH, data_json, secure=secure)
-    return True
-  except Exception as exception:
-    if fail.startswith('except'):
-      raise
-    elif fail.startswith('warn'):
-      logging.warn('Exception encountered in phone.send_start():\n'+str(exception))
-    elif fail == 'silent':
-      pass
-    return None
-
-
-def send_data(domain, path, data, secure=DEFAULT_SECURE):
+def post_data(domain, path, data, secure=DEFAULT_SECURE):
   if secure:
     conex = httplib.HTTPSConnection(domain)
   else:
