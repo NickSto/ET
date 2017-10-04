@@ -15,23 +15,28 @@ import logging
 import httplib
 import urlparse
 import argparse
+import version
 
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+VERSION = str(version.get_version(repo_dir=SCRIPT_DIR, config_path=os.path.join(SCRIPT_DIR, 'VERSION')))
 DEFAULT_DOMAIN = 'nstoler.com'
 DEFAULT_SECURE = True
 API_PATH_TEMPLATE = '/ET/{}'
-HEADERS = {'User-Agent':'ET phone home', 'Content-Type':'application/json; charset=utf-8'}
+HEADERS = {
+  'User-Agent':'ET-phone-home/'+VERSION,
+  'Content-Type':'application/json; charset=utf-8'
+}
 ALPHABET_DEFAULT = string.ascii_letters + string.digits + '+/'
 RUN_ID_LEN = 24
 
-ARG_DEFAULTS = {'domain':DEFAULT_DOMAIN, 'project':'ET', 'script':'phone.py', 'version':'0.0',
+ARG_DEFAULTS = {'domain':DEFAULT_DOMAIN, 'project':'ET', 'script':'phone.py', 'version':VERSION,
                 'run_data':'{}', 'secure':DEFAULT_SECURE, 'test':False, 'log':sys.stderr,
                 'volume':logging.ERROR}
-DESCRIPTION = """"""
 
 
 def make_argparser():
 
-  parser = argparse.ArgumentParser(description=DESCRIPTION)
+  parser = argparse.ArgumentParser()
   parser.set_defaults(**ARG_DEFAULTS)
 
   parser.add_argument('event_type', choices=('start', 'prelim', 'end'))
@@ -65,6 +70,11 @@ def make_argparser():
 
 
 def main(argv):
+
+  # If no other arguments are given, --version should just print the version of this script.
+  if len(argv) == 2 and (argv[1] == '--version' or argv[1] == '-v'):
+    print(VERSION)
+    return 1
 
   parser = make_argparser()
   args = parser.parse_args(argv[1:])
@@ -134,10 +144,15 @@ class Call(object):
 
   def send_data(self, event_type, run_data={}, run_time=None):
     """Send data about an event to the logging server.
-    The event_type must be one of "start", "prelim", or "end".
+    The event_type must be one of the following:
+    start: Note the invocation of the script.
+      Required arguments: none.
     prelim: Send out some data before starting the script in earnest, in case it fails.
       For example, gather the filesizes of the inputs. Do this before the main part of the code,
-      in case it throws an exception and we never get to send_end()"""
+      in case it throws an exception and we never get to "end".
+      Required arguments: run_data.
+    end: Report the end of the run and stats on the inputs.
+      Required arguments: run_time."""
     try:
       if not self.initialized:
         raise Exception('Call object not initialized. Aborting send_data()..')
