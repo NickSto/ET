@@ -94,7 +94,7 @@ def monitor(request):
 @require_admin_and_privacy
 def runs(request):
   runs_dict = get_runs(Event.objects.order_by('id'))
-  runs = sorted(runs_dict.values(), key=lambda run: run['time'])
+  runs = sorted(runs_dict.values(), reverse=True, key=lambda run: run['time'])
   return render(request, 'ET/runs.tmpl', {'runs':runs})
 
 
