@@ -9,16 +9,21 @@
 
 {% block content %}
   <div class="container-fluid">
-    {% if prev or next %}
-      <div class="buttons">
-        {% if prev %}
-          <a class="btn btn-default" href="{% url 'ET:monitor' %}?p={{ prev }}">&lt; Earlier</a>
-        {% endif %}
-        {% if next %}
-          <a class="btn btn-default" href="{% url 'ET:monitor' %}?p={{ next }}">Later &gt;</a>
-        {% endif %}
-      </div>
-    {% endif %}
+
+    <div class="buttons">
+      {% if prev %}
+        <a class="btn btn-default" href="{% url 'ET:runs' %}?p={{ prev }}">&lt; Earlier</a>
+      {% endif %}
+      {% if show_tests %}
+        <a class="btn btn-default" href="{% url 'ET:runs' %}">Hide tests</a>
+      {% else %}
+        <a class="btn btn-default" href="{% url 'ET:runs' %}?show=tests">Show tests</a>
+      {% endif %}
+      {% if next %}
+        <a class="btn btn-default" href="{% url 'ET:runs' %}?p={{ next }}">Later &gt;</a>
+      {% endif %}
+    </div>
+
     <section class="panel">
       <div class="panel-heading">
         <h4>Events
@@ -38,7 +43,9 @@
             <td>script</td>
             <td>version</td>
             <td>platform</td>
-            <td>test</td>
+            {% if show_tests %}
+              <td>test</td>
+            {% endif %}
           </tr>
         </thead>
         {% for run in runs %}
@@ -67,15 +74,17 @@
               <td>{{ run.script }}</td>
               <td>{{ run.version }}</td>
               <td>{{ run.platform }}</td>
-              <td>
-                {% if run.test %}
-                  TEST
-                {% endif %}
-              </td>
+              {% if show_tests %}
+                <td>
+                  {% if run.test %}
+                    TEST
+                  {% endif %}
+                </td>
+              {% endif %}
             </tr>
             {% if run.data %}
               <tr>
-                <td colspan="6">
+                <td colspan="{% if show_tests %}6{% else %}5{% endif %}">
                 <code>{{ run.data }}</code>
                 </td>
               </tr>
@@ -84,15 +93,20 @@
         {% endfor %}
       </table>
     </section>
-    {% if prev or next %}
-      <div class="buttons">
-        {% if prev %}
-          <a class="btn btn-default" href="{% url 'ET:monitor' %}?p={{ prev }}">&lt; Earlier</a>
-        {% endif %}
-        {% if next %}
-          <a class="btn btn-default" href="{% url 'ET:monitor' %}?p={{ next }}">Later &gt;</a>
-        {% endif %}
-      </div>
-    {% endif %}
+
+    <div class="buttons">
+      {% if prev %}
+        <a class="btn btn-default" href="{% url 'ET:runs' %}?p={{ prev }}">&lt; Earlier</a>
+      {% endif %}
+      {% if show_tests %}
+        <a class="btn btn-default" href="{% url 'ET:runs' %}">Hide tests</a>
+      {% else %}
+        <a class="btn btn-default" href="{% url 'ET:runs' %}?show=tests">Show tests</a>
+      {% endif %}
+      {% if next %}
+        <a class="btn btn-default" href="{% url 'ET:runs' %}?p={{ next }}">Later &gt;</a>
+      {% endif %}
+    </div>
+
   </div>
 {% endblock content %}
