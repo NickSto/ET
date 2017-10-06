@@ -98,7 +98,7 @@ def runs(request):
   show_tests = show is not None and show.startswith('test')
   runs_dict = get_runs(Event.objects.order_by('id'))
   runs = sorted(runs_dict.values(), reverse=True, key=lambda run: run['time'])
-  if show_tests:
+  if not show_tests:
     runs = [run for run in runs if not run['test']]
   return render(request, 'ET/runs.tmpl', {'runs':runs, 'show_tests':show_tests})
 
