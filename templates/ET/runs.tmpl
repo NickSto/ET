@@ -1,0 +1,98 @@
+{% extends 'bootstrap.tmpl' %}
+{% load staticfiles %}
+
+{% block title %}ET runs{% endblock %}
+
+{% block stylesheet %}
+  <link rel="stylesheet" href="{% static 'ET/css/monitor.css' %}?via=html">
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+    {% if prev or next %}
+      <div class="buttons">
+        {% if prev %}
+          <a class="btn btn-default" href="{% url 'ET:monitor' %}?p={{ prev }}">&lt; Earlier</a>
+        {% endif %}
+        {% if next %}
+          <a class="btn btn-default" href="{% url 'ET:monitor' %}?p={{ next }}">Later &gt;</a>
+        {% endif %}
+      </div>
+    {% endif %}
+    <section class="panel">
+      <div class="panel-heading">
+        <h4>Events
+          <small>
+            {% if end %}
+              {{ start }} to {{ end }}
+            {% endif %}
+          </small>
+        </h4>
+      </div>
+      <table id="events" class="panel-body table table-bordered table-condensed table-hover">
+        <thead>
+          <tr class="names">
+            <td></td>
+            <td>duration</td>
+            <td>project</td>
+            <td>script</td>
+            <td>version</td>
+            <td>platform</td>
+            <td>test</td>
+          </tr>
+        </thead>
+        {% for run in runs %}
+          <tbody class="entry {% cycle 'unshaded' 'shaded' %}">
+            <tr class="values">
+              <td rowspan=0>
+                <p><a href="http://whatismyipaddress.com/ip/{{ run.ip }}" rel="noreferrer" target="_blank">{{ run.ip }}</a></p>
+                <p>
+                  {% if run.start_time %}
+                    {{ run.start_time }} UTC
+                  {% else %}
+                    <strong class="warning">NO START</strong>
+                  {% endif %}
+                </p>
+              </td>
+              <td>
+                {% if run.failed %}
+                  <strong class="warning">FAILED</strong>
+                {% elif run.duration %}
+                  {{ run.duration }}
+                {% else %}
+                  <strong class="warning">???</strong>
+                {% endif %}
+              </td>
+              <td>{{ run.project }}</td>
+              <td>{{ run.script }}</td>
+              <td>{{ run.version }}</td>
+              <td>{{ run.platform }}</td>
+              <td>
+                {% if run.test %}
+                  TEST
+                {% endif %}
+              </td>
+            </tr>
+            {% if run.data %}
+              <tr>
+                <td colspan="6">
+                <code>{{ run.data }}</code>
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        {% endfor %}
+      </table>
+    </section>
+    {% if prev or next %}
+      <div class="buttons">
+        {% if prev %}
+          <a class="btn btn-default" href="{% url 'ET:monitor' %}?p={{ prev }}">&lt; Earlier</a>
+        {% endif %}
+        {% if next %}
+          <a class="btn btn-default" href="{% url 'ET:monitor' %}?p={{ next }}">Later &gt;</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+{% endblock content %}

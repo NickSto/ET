@@ -4,6 +4,8 @@ from django.views.decorators.csrf import csrf_exempt
 from myadmin.lib import require_admin_and_privacy
 from .models import Event
 import json
+import logging
+log = logging.getLogger(__name__)
 
 
 @csrf_exempt
@@ -42,6 +44,18 @@ def record(request, type):
   return HttpResponse(output, content_type='text/plain; charset=UTF-8')
 
 
+def valid_content_type(content_type, content_params):
+  if content_type != 'application/json':
+    return False
+  charset = content_params.get('charset')
+  if charset is None:
+    return False
+  if charset.lower() == 'utf8' or charset.lower() == 'utf-8':
+    return True
+  else:
+    return False
+
+
 @require_admin_and_privacy
 def monitor(request):
   DEFAULT_PER_PAGE = 50
@@ -77,17 +91,48 @@ def monitor(request):
     return render(request, 'ET/monitor.tmpl', context)
 
 
+@require_admin_and_privacy
+def runs(request):
+  runs_dict = get_runs(Event.objects.order_by('id'))
+  runs = sorted(runs_dict.values(), key=lambda run: run['time'])
+  return render(request, 'ET/runs.tmpl', {'runs':runs})
+
+
+def get_runs(events):
+  runs = {}
+  for event in events:
+    try:
+      run = runs[event.run_id]
+    except KeyError:
+      run = {
+        'time': event.visit.timestamp,
+        'start_time': None,
+        'end_time': None,
+        'duration': None,
+        'data': None,
+        'failed': True,
+        'project': event.project,
+        'script': event.script,
+        'version': event.version,
+        'platform': event.platform,
+        'test': event.test,
+        'ip': event.visit.visitor.ip,
+      }
+      runs[event.run_id] = run
+    if event.type == 'start':
+      run['start_time'] = event.visit.timestamp
+      run['time'] = event.visit.timestamp
+    elif event.type == 'prelim' and run['data'] is None:
+      run['data'] = event.run_data
+    elif event.type == 'end':
+      run['end_time'] = event.visit.timestamp
+      if run['start_time']:
+        delta = run['end_time'] - run['start_time']
+        run['duration'] = str(delta).split('.')[0]
+      run['data'] = event.run_data
+      run['failed'] = False
+  return runs
+
+
 def fail(message):
   return HttpResponseBadRequest('Error: '+message+'\n', content_type='text/plain; charset=UTF-8')
-
-
-def valid_content_type(content_type, content_params):
-  if content_type != 'application/json':
-    return False
-  charset = content_params.get('charset')
-  if charset is None:
-    return False
-  if charset.lower() == 'utf8' or charset.lower() == 'utf-8':
-    return True
-  else:
-    return False
