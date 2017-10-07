@@ -14,3 +14,7 @@ tbody + tbody.entry {
 .shaded {
   background-color: #f8f8f8;
 }
+
+.warning {
+  color: #b43454;
+}

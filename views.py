@@ -5,7 +5,9 @@ from myadmin.lib import require_admin_and_privacy
 from traffic.ipinfo import set_timezone
 from .models import Event
 import json
+import pytz
 import logging
+from datetime import datetime
 log = logging.getLogger(__name__)
 
 
@@ -107,6 +109,7 @@ def runs(request):
 
 def get_runs(events):
   runs = {}
+  now = datetime.now(tz=pytz.utc)
   for event in events:
     try:
       run = runs[event.run_id]
@@ -117,7 +120,8 @@ def get_runs(events):
         'end_time': None,
         'duration': None,
         'data': None,
-        'failed': True,
+        'finished': False,
+        'awol': False,
         'project': event.project,
         'script': event.script,
         'version': event.version,
@@ -137,7 +141,15 @@ def get_runs(events):
         delta = run['end_time'] - run['start_time']
         run['duration'] = str(delta).split('.')[0]
       run['data'] = event.run_data
-      run['failed'] = False
+      run['finished'] = True
+  for run in runs.values():
+    if not run['finished']:
+      # For unfinished runs, "duration" is how long it's been running so far.
+      delta = now - run['start_time']
+      # If it's been running for 2 days or longer, count it as AWOL (probably failed).
+      if delta.days > 1:
+        run['awol'] = True
+      run['duration'] = str(delta).split('.')[0]
   return runs
 
 
