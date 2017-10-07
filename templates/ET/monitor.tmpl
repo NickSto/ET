@@ -32,7 +32,7 @@
       <table id="events" class="panel-body table table-bordered table-condensed table-hover">
         <thead>
           <tr class="names">
-            <td></td>
+            <td>ip / time ({{ timezone }})</td>
             <td>type</td>
             <td>project</td>
             <td>script</td>
@@ -47,7 +47,7 @@
             <tr class="values">
               <td rowspan=0>
                 <p><a href="http://whatismyipaddress.com/ip/{{ event.visit.visitor.ip }}" rel="noreferrer" target="_blank">{{ event.visit.visitor.ip }}</a></p>
-                <p>{{ event.visit.timestamp }} UTC</p>
+                <p>{{ event.visit.timestamp | date:"M j Y, g:i:s A" }}</p>
               </td>
               <td>{{ event.type }}</td>
               <td>{{ event.project }}</td>

@@ -2,6 +2,7 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from myadmin.lib import require_admin_and_privacy
+from traffic.ipinfo import set_timezone
 from .models import Event
 import json
 import logging
@@ -77,7 +78,7 @@ def monitor(request):
                          .format(timestamp, event.visit.visitor.ip, **vars(event)))
     return HttpResponse('\n'.join(events_strs), content_type='text/plain; charset=UTF-8')
   else:
-    context = {'events':events}
+    context = {'events':events, 'timezone':set_timezone(request)}
     if start == 0 and end >= total_events:
       context['start'] = None
       context['end'] = None
@@ -100,7 +101,8 @@ def runs(request):
   runs = sorted(runs_dict.values(), reverse=True, key=lambda run: run['time'])
   if not show_tests:
     runs = [run for run in runs if not run['test']]
-  return render(request, 'ET/runs.tmpl', {'runs':runs, 'show_tests':show_tests})
+  context = {'runs':runs, 'show_tests':show_tests, 'timezone':set_timezone(request)}
+  return render(request, 'ET/runs.tmpl', context)
 
 
 def get_runs(events):

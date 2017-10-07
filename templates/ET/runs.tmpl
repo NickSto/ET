@@ -37,7 +37,7 @@
       <table id="events" class="panel-body table table-bordered table-condensed table-hover">
         <thead>
           <tr class="names">
-            <td></td>
+            <td>ip / time ({{ timezone }})</td>
             <td>duration</td>
             <td>project</td>
             <td>script</td>
@@ -55,7 +55,7 @@
                 <p><a href="http://whatismyipaddress.com/ip/{{ run.ip }}" rel="noreferrer" target="_blank">{{ run.ip }}</a></p>
                 <p>
                   {% if run.start_time %}
-                    {{ run.start_time }} UTC
+                    {{ run.start_time | date:"M j Y, g:i:s A" }}
                   {% else %}
                     <strong class="warning">NO START</strong>
                   {% endif %}
