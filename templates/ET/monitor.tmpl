@@ -46,7 +46,7 @@
           <tbody class="entry {% cycle 'unshaded' 'shaded' %}">
             <tr class="values">
               <td rowspan=0>
-                <p><a href="http://whatismyipaddress.com/ip/{{ event.visit.visitor.ip }}" rel="noreferrer" target="_blank">{{ event.visit.visitor.ip }}</a></p>
+                <p><a href="{% url 'traffic:view_ip' event.visit.visitor.ip %}">{{ event.visit.visitor.ip }}</a></p>
                 <p>{{ event.visit.timestamp | date:"M j Y, g:i:s A" }}</p>
               </td>
               <td>{{ event.type }}</td>
