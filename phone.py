@@ -15,7 +15,12 @@ import logging
 import httplib
 import urlparse
 import argparse
-import version
+# Protect against other modules named "version" which can end up being imported before ours
+# (like in networkx).
+if __name__ == '__main__':
+  import version
+else:
+  from . import version
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 VERSION = str(version.get_version(repo_dir=SCRIPT_DIR, config_path=os.path.join(SCRIPT_DIR, 'VERSION')))
