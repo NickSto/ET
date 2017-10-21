@@ -25,6 +25,7 @@ else:
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 VERSION = str(version.get_version(repo_dir=SCRIPT_DIR, config_path=os.path.join(SCRIPT_DIR, 'VERSION')))
 DEFAULT_DOMAIN = 'nstoler.com'
+DEFAULT_TIMEOUT = 10  # seconds
 DEFAULT_SECURE = True
 API_PATH_TEMPLATE = '/ET/{}'
 HEADERS = {
@@ -112,6 +113,7 @@ class Call(object):
                version,
                run_id=None,
                domain=DEFAULT_DOMAIN,
+               timeout=DEFAULT_TIMEOUT,
                secure=DEFAULT_SECURE,
                platform=None,
                test=False,
@@ -121,6 +123,7 @@ class Call(object):
       if run_id is None:
         run_id = make_blob(RUN_ID_LEN)
       self.domain = domain
+      self.timeout = timeout
       self.secure = secure
       self.fail = fail
       self.data = {
@@ -169,7 +172,7 @@ class Call(object):
       data = self.construct_data(event_type, run_time, run_data)
       data_json = json.dumps(data)
       path = API_PATH_TEMPLATE.format(event_type)
-      success = post_data(self.domain, path, data_json, secure=self.secure)
+      success = post_data(self.domain, path, data_json, secure=self.secure, timeout=self.timeout)
     except Exception as exception:
       if self.fail.startswith('except'):
         raise
@@ -199,12 +202,12 @@ class Call(object):
     return data
 
 
-def post_data(domain, path, data, secure=DEFAULT_SECURE):
+def post_data(domain, path, data, secure=DEFAULT_SECURE, timeout=DEFAULT_TIMEOUT):
   if secure:
-    conex = httplib.HTTPSConnection(domain)
+    conex = httplib.HTTPSConnection(domain, timeout=timeout)
   else:
     context = ssl._create_unverified_context()
-    conex = httplib.HTTPSConnection(domain, context=context)
+    conex = httplib.HTTPSConnection(domain, context=context, timeout=timeout)
   logging.info('Sending to https://{}{}:\n{}'.format(domain, path, data))
   try:
     conex.request('POST', path, data, HEADERS)
