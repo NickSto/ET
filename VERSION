@@ -1,3 +1,4 @@
 [version]
 project = ET
-version_num = 0.2.2
+version_num = 0.2.3
+stage = alpha
