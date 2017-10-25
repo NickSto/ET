@@ -70,6 +70,8 @@
                   {% else %}
                     <strong class="warning">???</strong>
                   {% endif %}
+                {% elif run.failed %}
+                  <strong class="warning">FAILED</strong> after {{ run.duration }}
                 {% elif run.awol %}
                   <strong class="warning">AWOL</strong> for {{ run.duration }}
                 {% elif run.duration %}
@@ -93,7 +95,17 @@
             {% if run.data %}
               <tr>
                 <td colspan="{% if show_tests %}6{% else %}5{% endif %}">
-                <code>{{ run.data }}</code>
+                  <code>{{ run.data }}</code>
+                </td>
+              </tr>
+            {% endif %}
+            {% if run.exception %}
+              <tr>
+                <td colspan="{% if show_tests %}6{% else %}5{% endif %}">
+                  <pre class="traceback">{% for event in run.exception.traceback %}
+File "{{ event.file }}", line {{ event.line }}, in {{ event.function }}
+  {{ event.code }}{% endfor %}
+{{ run.exception.type }}</pre>
                 </td>
               </tr>
             {% endif %}

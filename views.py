@@ -121,7 +121,9 @@ def get_runs(events):
         'duration': None,
         'data': None,
         'finished': False,
+        'failed': None,
         'awol': False,
+        'exception': None,
         'project': event.project,
         'script': event.script,
         'version': event.version,
@@ -142,6 +144,14 @@ def get_runs(events):
         run['duration'] = str(delta).split('.')[0]
       run['data'] = event.run_data
       run['finished'] = True
+      try:
+        parsed_data = json.loads(event.run_data)
+        if parsed_data:
+          if parsed_data.get('failed'):
+            run['failed'] == True
+          run['exception'] = parsed_data.get('exception')
+      except ValueError:
+        pass
   for run in runs.values():
     if not run['finished']:
       # For unfinished runs, "duration" is how long it's been running so far.

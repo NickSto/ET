@@ -9,6 +9,7 @@ tbody + tbody.entry {
 
 .table > tbody.entry > tr > td {
   border-top-style: none;
+  border-bottom-style: none;
 }
 
 .shaded {
@@ -17,4 +18,9 @@ tbody + tbody.entry {
 
 .warning {
   color: #b43454;
+}
+
+pre.traceback {
+  border: none;
+  background-color: inherit;
 }
