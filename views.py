@@ -151,7 +151,7 @@ def get_runs(events):
             run['failed'] = True
           run['exception'] = parsed_data.get('exception')
       except ValueError:
-        pass
+        log.info('ValueError when attempting to parse JSON {!r}.'.format(event.run_data))
   for run in runs.values():
     if not run['finished']:
       # For unfinished runs, "duration" is how long it's been running so far.
