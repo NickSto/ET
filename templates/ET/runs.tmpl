@@ -65,13 +65,13 @@
               </td>
               <td>
                 {% if run.finished %}
-                  {% if run.duration %}
+                  {% if run.failed %}
+                    <strong class="warning">FAILED</strong> after {{ run.duration }}
+                  {% elif run.duration %}
                     {{ run.duration }}
                   {% else %}
                     <strong class="warning">???</strong>
                   {% endif %}
-                {% elif run.failed %}
-                  <strong class="warning">FAILED</strong> after {{ run.duration }}
                 {% elif run.awol %}
                   <strong class="warning">AWOL</strong> for {{ run.duration }}
                 {% elif run.duration %}
