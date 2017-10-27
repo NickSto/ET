@@ -148,7 +148,7 @@ def get_runs(events):
         parsed_data = json.loads(event.run_data)
         if parsed_data:
           if parsed_data.get('failed'):
-            run['failed'] == True
+            run['failed'] = True
           run['exception'] = parsed_data.get('exception')
       except ValueError:
         pass
