@@ -1,6 +1,8 @@
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+from django.urls import reverse
+import django.core.paginator
 from myadmin.lib import require_admin_and_privacy
 from traffic.ipinfo import set_timezone
 from .models import Event
@@ -9,6 +11,8 @@ import pytz
 import logging
 from datetime import datetime
 log = logging.getLogger(__name__)
+
+DEFAULT_PER_PAGE = 50
 
 
 @csrf_exempt
@@ -61,11 +65,13 @@ def valid_content_type(content_type, content_params):
 
 @require_admin_and_privacy
 def monitor(request):
-  DEFAULT_PER_PAGE = 50
   # Get query parameters.
   params = request.GET
   page = int(params.get('p', 1))
-  per_page = int(params.get('per_page', DEFAULT_PER_PAGE))
+  try:
+    per_page = int(params.get('per_page', DEFAULT_PER_PAGE))
+  except (ValueError, TypeError):
+    per_page = DEFAULT_PER_PAGE
   format = params.get('format', 'html')
   total_events = Event.objects.count()
   start = per_page*(page-1)
@@ -97,13 +103,38 @@ def monitor(request):
 @require_admin_and_privacy
 def runs(request):
   params = request.GET
+  try:
+    page_num = int(params.get('p', 1))
+  except (ValueError, TypeError):
+    page_num = 1
+  if page_num < 1:
+    return HttpResponseRedirect(reverse('ET:runs')+'?p=1')
+  try:
+    per_page = int(params.get('per_page', DEFAULT_PER_PAGE))
+  except (ValueError, TypeError):
+    per_page = DEFAULT_PER_PAGE
   show = params.get('show')
   show_tests = show is not None and show.startswith('test')
   runs_dict = get_runs(Event.objects.order_by('id'))
   runs = sorted(runs_dict.values(), reverse=True, key=lambda run: run['time'])
   if not show_tests:
     runs = [run for run in runs if not run['test']]
-  context = {'runs':runs, 'show_tests':show_tests, 'timezone':set_timezone(request)}
+  pages = django.core.paginator.Paginator(runs, per_page)
+  try:
+    page = pages.page(page_num)
+  except django.core.paginator.EmptyPage:
+    return HttpResponseRedirect('{}?p={}'.format(reverse('ET:runs'), pages.num_pages))
+  context = {
+    'runs':page,
+    'prev':None,
+    'next':None,
+    'show_tests':show_tests,
+    'timezone':set_timezone(request)
+  }
+  if page.has_previous():
+    context['prev'] = page.previous_page_number()
+  if page.has_next():
+    context['next'] = page.next_page_number()
   return render(request, 'ET/runs.tmpl', context)
 
 

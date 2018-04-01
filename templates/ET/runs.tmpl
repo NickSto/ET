@@ -11,16 +11,16 @@
   <div class="container-fluid">
 
     <div class="buttons">
-      {% if prev %}
-        <a class="btn btn-default" href="{% url 'ET:runs' %}?p={{ prev }}">&lt; Earlier</a>
+      {% if runs.has_previous %}
+        <a class="btn btn-default" href="{% url 'ET:runs' %}?p={{ runs.previous_page_number }}">&lt; Earlier</a>
       {% endif %}
       {% if show_tests %}
         <a class="btn btn-default" href="{% url 'ET:runs' %}">Hide tests</a>
       {% else %}
         <a class="btn btn-default" href="{% url 'ET:runs' %}?show=tests">Show tests</a>
       {% endif %}
-      {% if next %}
-        <a class="btn btn-default" href="{% url 'ET:runs' %}?p={{ next }}">Later &gt;</a>
+      {% if runs.has_next %}
+        <a class="btn btn-default" href="{% url 'ET:runs' %}?p={{ runs.next_page_number }}">Later &gt;</a>
       {% endif %}
     </div>
 
@@ -28,8 +28,8 @@
       <div class="panel-heading">
         <h4>Runs
           <small>
-            {% if end %}
-              {{ start }} to {{ end }}
+            {% if runs.has_other_pages %}
+              {{ runs.start_index }} to {{ runs.end_index }}
             {% endif %}
           </small>
         </h4>
@@ -115,16 +115,16 @@ File "{{ event.file }}", line {{ event.line }}, in {{ event.function }}
     </section>
 
     <div class="buttons">
-      {% if prev %}
-        <a class="btn btn-default" href="{% url 'ET:runs' %}?p={{ prev }}">&lt; Earlier</a>
+      {% if runs.has_previous %}
+        <a class="btn btn-default" href="{% url 'ET:runs' %}?p={{ runs.previous_page_number }}">&lt; Earlier</a>
       {% endif %}
       {% if show_tests %}
         <a class="btn btn-default" href="{% url 'ET:runs' %}">Hide tests</a>
       {% else %}
         <a class="btn btn-default" href="{% url 'ET:runs' %}?show=tests">Show tests</a>
       {% endif %}
-      {% if next %}
-        <a class="btn btn-default" href="{% url 'ET:runs' %}?p={{ next }}">Later &gt;</a>
+      {% if runs.has_next %}
+        <a class="btn btn-default" href="{% url 'ET:runs' %}?p={{ runs.next_page_number }}">Later &gt;</a>
       {% endif %}
     </div>
 
