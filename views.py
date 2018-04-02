@@ -67,37 +67,35 @@ def valid_content_type(content_type, content_params):
 @require_admin_and_privacy
 def monitor(request):
   # Get query parameters.
-  params = request.GET
-  page = int(params.get('p', 1))
+  params = QueryParams()
+  params.add('p', default=1, type=int)
+  params.add('perpage', default=DEFAULT_PER_PAGE, type=int)
+  params.add('format', default='html')
+  params.parse(request.GET)
+  events = Event.objects.order_by('-id')
+  pages = django.core.paginator.Paginator(events, params['perpage'])
   try:
-    per_page = int(params.get('per_page', DEFAULT_PER_PAGE))
-  except (ValueError, TypeError):
-    per_page = DEFAULT_PER_PAGE
-  format = params.get('format', 'html')
-  total_events = Event.objects.count()
-  start = per_page*(page-1)
-  end = per_page*page
-  events = Event.objects.order_by('-id')[start:end]
-  if format == 'plain':
+    page = pages.page(params['p'])
+  except django.core.paginator.EmptyPage:
+    return HttpResponseRedirect(reverse('ET:monitor')+str(params.but_with('p', pages.num_pages)))
+  if params['format'] == 'plain':
     events_strs = []
-    for event in events:
+    for event in page:
       timestamp = event.visit.timestamp.timestamp()
       events_strs.append('{id}\t{0}\t{1}\t{type}\t{project}\t{script}\t{version}\t{platform}\t'
                          '{test}\t{run_id}\t{run_data}'
                          .format(timestamp, event.visit.visitor.ip, **vars(event)))
     return HttpResponse('\n'.join(events_strs), content_type='text/plain; charset=UTF-8')
   else:
-    context = {'events':events, 'timezone':set_timezone(request)}
-    if start == 0 and end >= total_events:
-      context['start'] = None
-      context['end'] = None
-    else:
-      context['start'] = max(1, total_events-end+1)
-      context['end'] = total_events-start
-    if page > 1:
-      context['prev'] = page-1
-    if end < total_events:
-      context['next'] = page+1
+    # Construct the navigation links.
+    links = []
+    if page.has_previous():
+      query_str = str(params.but_with('p', page.previous_page_number()))
+      links.append({'text':'< Earlier', 'query':query_str})
+    if page.has_next():
+      query_str = str(params.but_with('p', page.next_page_number()))
+      links.append({'text':'Later >', 'query':query_str})
+    context = {'events':page, 'links':links, 'timezone':set_timezone(request)}
     return render(request, 'ET/monitor.tmpl', context)
 
 

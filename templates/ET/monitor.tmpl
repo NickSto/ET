@@ -9,22 +9,21 @@
 
 {% block content %}
   <div class="container-fluid">
-    {% if prev or next %}
+
+    {% if links %}
       <div class="buttons">
-        {% if prev %}
-          <a class="btn btn-default" href="{% url 'ET:monitor' %}?p={{ prev }}">&lt; Earlier</a>
-        {% endif %}
-        {% if next %}
-          <a class="btn btn-default" href="{% url 'ET:monitor' %}?p={{ next }}">Later &gt;</a>
-        {% endif %}
+        {% for link in links %}
+          <a class="btn btn-default" href="{% url 'ET:monitor' %}{{ link.query }}">{{ link.text }}</a>
+        {% endfor %}
       </div>
     {% endif %}
+
     <section class="panel">
       <div class="panel-heading">
         <h4>Events
           <small>
-            {% if end %}
-              {{ start }} to {{ end }}
+            {% if events.has_other_pages %}
+              {{ events.start_index }} to {{ events.end_index }}
             {% endif %}
           </small>
         </h4>
@@ -66,15 +65,14 @@
         {% endfor %}
       </table>
     </section>
-    {% if prev or next %}
+
+    {% if links %}
       <div class="buttons">
-        {% if prev %}
-          <a class="btn btn-default" href="{% url 'ET:monitor' %}?p={{ prev }}">&lt; Earlier</a>
-        {% endif %}
-        {% if next %}
-          <a class="btn btn-default" href="{% url 'ET:monitor' %}?p={{ next }}">Later &gt;</a>
-        {% endif %}
+        {% for link in links %}
+          <a class="btn btn-default" href="{% url 'ET:monitor' %}{{ link.query }}">{{ link.text }}</a>
+        {% endfor %}
       </div>
     {% endif %}
+
   </div>
 {% endblock content %}
