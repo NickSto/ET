@@ -5,7 +5,7 @@ from django.urls import reverse
 import django.core.paginator
 from myadmin.lib import require_admin_and_privacy
 from traffic.ipinfo import set_timezone
-from utils import QueryParams
+from utils import QueryParams, boolish
 from .models import Event
 import json
 import pytz
@@ -104,7 +104,7 @@ def runs(request):
   params = QueryParams()
   params.add('p', default=1, type=int)
   params.add('perpage', default=DEFAULT_PER_PAGE, type=int)
-  params.add('showtests', default=None)
+  params.add('showtests', default=False, type=boolish)
   params.parse(request.GET)
   if params['p'] < 1:
     return HttpResponseRedirect(reverse('ET:runs')+str(params.but_with('p', 1)))
