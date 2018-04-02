@@ -10,19 +10,13 @@
 {% block content %}
   <div class="container-fluid">
 
-    <div class="buttons">
-      {% if runs.has_previous %}
-        <a class="btn btn-default" href="{% url 'ET:runs' %}?p={{ runs.previous_page_number }}">&lt; Earlier</a>
-      {% endif %}
-      {% if show_tests %}
-        <a class="btn btn-default" href="{% url 'ET:runs' %}">Hide tests</a>
-      {% else %}
-        <a class="btn btn-default" href="{% url 'ET:runs' %}?show=tests">Show tests</a>
-      {% endif %}
-      {% if runs.has_next %}
-        <a class="btn btn-default" href="{% url 'ET:runs' %}?p={{ runs.next_page_number }}">Later &gt;</a>
-      {% endif %}
-    </div>
+    {% if links %}
+      <div class="buttons">
+        {% for link in links %}
+          <a class="btn btn-default" href="{% url 'ET:runs' %}{{ link.query }}">{{ link.text }}</a>
+        {% endfor %}
+      </div>
+    {% endif %}
 
     <section class="panel">
       <div class="panel-heading">
@@ -43,7 +37,7 @@
             <td>script</td>
             <td>version</td>
             <td>platform</td>
-            {% if show_tests %}
+            {% if showtests %}
               <td>test</td>
             {% endif %}
           </tr>
@@ -84,7 +78,7 @@
               <td>{{ run.script }}</td>
               <td>{{ run.version }}</td>
               <td>{{ run.platform }}</td>
-              {% if show_tests %}
+              {% if showtests %}
                 <td>
                   {% if run.test %}
                     TEST
@@ -94,14 +88,14 @@
             </tr>
             {% if run.data %}
               <tr>
-                <td colspan="{% if show_tests %}6{% else %}5{% endif %}">
+                <td colspan="{% if showtests %}6{% else %}5{% endif %}">
                   <code>{{ run.data }}</code>
                 </td>
               </tr>
             {% endif %}
             {% if run.exception %}
               <tr>
-                <td colspan="{% if show_tests %}6{% else %}5{% endif %}">
+                <td colspan="{% if showtests %}6{% else %}5{% endif %}">
                   <pre class="traceback">{% for event in run.exception.traceback %}
 File "{{ event.file }}", line {{ event.line }}, in {{ event.function }}
   {{ event.code }}{% endfor %}
@@ -114,19 +108,13 @@ File "{{ event.file }}", line {{ event.line }}, in {{ event.function }}
       </table>
     </section>
 
-    <div class="buttons">
-      {% if runs.has_previous %}
-        <a class="btn btn-default" href="{% url 'ET:runs' %}?p={{ runs.previous_page_number }}">&lt; Earlier</a>
-      {% endif %}
-      {% if show_tests %}
-        <a class="btn btn-default" href="{% url 'ET:runs' %}">Hide tests</a>
-      {% else %}
-        <a class="btn btn-default" href="{% url 'ET:runs' %}?show=tests">Show tests</a>
-      {% endif %}
-      {% if runs.has_next %}
-        <a class="btn btn-default" href="{% url 'ET:runs' %}?p={{ runs.next_page_number }}">Later &gt;</a>
-      {% endif %}
-    </div>
+    {% if links %}
+      <div class="buttons">
+        {% for link in links %}
+          <a class="btn btn-default" href="{% url 'ET:runs' %}{{ link.query }}">{{ link.text }}</a>
+        {% endfor %}
+      </div>
+    {% endif %}
 
   </div>
 {% endblock content %}

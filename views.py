@@ -5,6 +5,7 @@ from django.urls import reverse
 import django.core.paginator
 from myadmin.lib import require_admin_and_privacy
 from traffic.ipinfo import set_timezone
+from utils import QueryParams
 from .models import Event
 import json
 import pytz
@@ -102,39 +103,44 @@ def monitor(request):
 
 @require_admin_and_privacy
 def runs(request):
-  params = request.GET
-  try:
-    page_num = int(params.get('p', 1))
-  except (ValueError, TypeError):
-    page_num = 1
-  if page_num < 1:
-    return HttpResponseRedirect(reverse('ET:runs')+'?p=1')
-  try:
-    per_page = int(params.get('per_page', DEFAULT_PER_PAGE))
-  except (ValueError, TypeError):
-    per_page = DEFAULT_PER_PAGE
-  show = params.get('show')
-  show_tests = show is not None and show.startswith('test')
+  params = QueryParams()
+  params.add('p', default=1, type=int)
+  params.add('perpage', default=DEFAULT_PER_PAGE, type=int)
+  params.add('showtests', default=None)
+  params.parse(request.GET)
+  if params['p'] < 1:
+    return HttpResponseRedirect(reverse('ET:runs')+str(params.but_with('p', 1)))
+  params.copy()
+  # Get the runs for this page.
   runs_dict = get_runs(Event.objects.order_by('id'))
   runs = sorted(runs_dict.values(), reverse=True, key=lambda run: run['time'])
-  if not show_tests:
+  if not params['showtests']:
     runs = [run for run in runs if not run['test']]
-  pages = django.core.paginator.Paginator(runs, per_page)
+  pages = django.core.paginator.Paginator(runs, params['perpage'])
   try:
-    page = pages.page(page_num)
+    page = pages.page(params['p'])
   except django.core.paginator.EmptyPage:
-    return HttpResponseRedirect('{}?p={}'.format(reverse('ET:runs'), pages.num_pages))
+    return HttpResponseRedirect(reverse('ET:runs')+str(params.but_with('p', pages.num_pages)))
+  # Construct the navigation links.
+  links = []
+  if page.has_previous():
+    query_str = str(params.but_with('p', page.previous_page_number()))
+    links.append({'text':'< Earlier', 'query':query_str})
+  if params['showtests']:
+    query_str = str(params.but_with('showtests', None))
+    links.append({'text':'Hide tests', 'query':query_str})
+  else:
+    query_str = str(params.but_with('showtests', 'true'))
+    links.append({'text':'Show tests', 'query':query_str})
+  if page.has_next():
+    query_str = str(params.but_with('p', page.next_page_number()))
+    links.append({'text':'Later >', 'query':query_str})
   context = {
     'runs':page,
-    'prev':None,
-    'next':None,
-    'show_tests':show_tests,
+    'links':links,
+    'showtests':params['showtests'],
     'timezone':set_timezone(request)
   }
-  if page.has_previous():
-    context['prev'] = page.previous_page_number()
-  if page.has_next():
-    context['next'] = page.next_page_number()
   return render(request, 'ET/runs.tmpl', context)
 
 
