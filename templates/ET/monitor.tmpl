@@ -12,8 +12,8 @@
 
     {% if links %}
       <div class="buttons">
-        {% for link in links %}
-          <a class="btn btn-default" href="{% url 'ET:monitor' %}{{ link.query }}">{{ link.text }}</a>
+        {% for text, query in links.items %}
+          <a class="btn btn-default" href="{% url 'ET:monitor' %}{{ query }}">{{ text }}</a>
         {% endfor %}
       </div>
     {% endif %}
@@ -68,8 +68,8 @@
 
     {% if links %}
       <div class="buttons">
-        {% for link in links %}
-          <a class="btn btn-default" href="{% url 'ET:monitor' %}{{ link.query }}">{{ link.text }}</a>
+        {% for text, query in links.items %}
+          <a class="btn btn-default" href="{% url 'ET:monitor' %}{{ query }}">{{ text }}</a>
         {% endfor %}
       </div>
     {% endif %}

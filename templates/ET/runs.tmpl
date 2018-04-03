@@ -12,8 +12,8 @@
 
     {% if links %}
       <div class="buttons">
-        {% for link in links %}
-          <a class="btn btn-default" href="{% url 'ET:runs' %}{{ link.query }}">{{ link.text }}</a>
+        {% for text, query in links.items %}
+          <a class="btn btn-default" href="{% url 'ET:runs' %}{{ query }}">{{ text }}</a>
         {% endfor %}
       </div>
     {% endif %}
@@ -110,8 +110,8 @@ File "{{ event.file }}", line {{ event.line }}, in {{ event.function }}
 
     {% if links %}
       <div class="buttons">
-        {% for link in links %}
-          <a class="btn btn-default" href="{% url 'ET:runs' %}{{ link.query }}">{{ link.text }}</a>
+        {% for text, query in links.items %}
+          <a class="btn btn-default" href="{% url 'ET:runs' %}{{ query }}">{{ text }}</a>
         {% endfor %}
       </div>
     {% endif %}

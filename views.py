@@ -7,6 +7,7 @@ from myadmin.lib import require_admin_and_privacy
 from traffic.ipinfo import set_timezone
 from utils import QueryParams, boolish
 from .models import Event
+import collections
 import json
 import pytz
 import logging
@@ -88,13 +89,11 @@ def monitor(request):
     return HttpResponse('\n'.join(events_strs), content_type='text/plain; charset=UTF-8')
   else:
     # Construct the navigation links.
-    links = []
+    links = collections.OrderedDict()
     if page.has_previous():
-      query_str = str(params.but_with(p=page.previous_page_number()))
-      links.append({'text':'< Earlier', 'query':query_str})
+      links['< Earlier'] = str(params.but_with(p=page.previous_page_number()))
     if page.has_next():
-      query_str = str(params.but_with(p=page.next_page_number()))
-      links.append({'text':'Later >', 'query':query_str})
+      links['Later >'] = str(params.but_with(p=page.next_page_number()))
     context = {'events':page, 'links':links, 'timezone':set_timezone(request)}
     return render(request, 'ET/monitor.tmpl', context)
 
@@ -120,19 +119,15 @@ def runs(request):
   except django.core.paginator.EmptyPage:
     return HttpResponseRedirect(reverse('ET:runs')+str(params.but_with(p=pages.num_pages)))
   # Construct the navigation links.
-  links = []
+  links = collections.OrderedDict()
   if page.has_previous():
-    query_str = str(params.but_with(p=page.previous_page_number()))
-    links.append({'text':'< Earlier', 'query':query_str})
+    links['< Earlier'] = str(params.but_with(p=page.previous_page_number()))
   if params['showtests']:
-    query_str = str(params.but_with(showtests=None))
-    links.append({'text':'Hide tests', 'query':query_str})
+    links['Hide tests'] = str(params.but_with(showtests=None))
   else:
-    query_str = str(params.but_with(showtests='true'))
-    links.append({'text':'Show tests', 'query':query_str})
+    links['Show tests'] = str(params.but_with(showtests='true'))
   if page.has_next():
-    query_str = str(params.but_with(p=page.next_page_number()))
-    links.append({'text':'Later >', 'query':query_str})
+    links['Later >'] = str(params.but_with(p=page.next_page_number()))
   context = {
     'runs':page,
     'links':links,
