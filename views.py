@@ -91,9 +91,9 @@ def monitor(request):
     # Construct the navigation links.
     links = collections.OrderedDict()
     if page.has_previous():
-      links['< Earlier'] = str(params.but_with(p=page.previous_page_number()))
+      links['< Later'] = str(params.but_with(p=page.previous_page_number()))
     if page.has_next():
-      links['Later >'] = str(params.but_with(p=page.next_page_number()))
+      links['Earlier >'] = str(params.but_with(p=page.next_page_number()))
     context = {'events':page, 'links':links, 'timezone':set_timezone(request)}
     return render(request, 'ET/monitor.tmpl', context)
 
@@ -121,13 +121,13 @@ def runs(request):
   # Construct the navigation links.
   links = collections.OrderedDict()
   if page.has_previous():
-    links['< Earlier'] = str(params.but_with(p=page.previous_page_number()))
+    links['< Later'] = str(params.but_with(p=page.previous_page_number()))
   if params['showtests']:
     links['Hide tests'] = str(params.but_with(showtests=None))
   else:
     links['Show tests'] = str(params.but_with(showtests='true'))
   if page.has_next():
-    links['Later >'] = str(params.but_with(p=page.next_page_number()))
+    links['Earlier >'] = str(params.but_with(p=page.next_page_number()))
   context = {
     'runs':page,
     'links':links,
