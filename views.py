@@ -77,7 +77,7 @@ def monitor(request):
   try:
     page = pages.page(params['p'])
   except django.core.paginator.EmptyPage:
-    return HttpResponseRedirect(reverse('ET:monitor')+str(params.but_with('p', pages.num_pages)))
+    return HttpResponseRedirect(reverse('ET:monitor')+str(params.but_with(p=pages.num_pages)))
   if params['format'] == 'plain':
     events_strs = []
     for event in page:
@@ -90,10 +90,10 @@ def monitor(request):
     # Construct the navigation links.
     links = []
     if page.has_previous():
-      query_str = str(params.but_with('p', page.previous_page_number()))
+      query_str = str(params.but_with(p=page.previous_page_number()))
       links.append({'text':'< Earlier', 'query':query_str})
     if page.has_next():
-      query_str = str(params.but_with('p', page.next_page_number()))
+      query_str = str(params.but_with(p=page.next_page_number()))
       links.append({'text':'Later >', 'query':query_str})
     context = {'events':page, 'links':links, 'timezone':set_timezone(request)}
     return render(request, 'ET/monitor.tmpl', context)
@@ -107,7 +107,7 @@ def runs(request):
   params.add('showtests', default=False, type=boolish)
   params.parse(request.GET)
   if params['p'] < 1:
-    return HttpResponseRedirect(reverse('ET:runs')+str(params.but_with('p', 1)))
+    return HttpResponseRedirect(reverse('ET:runs')+str(params.but_with(p=1)))
   params.copy()
   # Get the runs for this page.
   runs_dict = get_runs(Event.objects.order_by('id'))
@@ -118,20 +118,20 @@ def runs(request):
   try:
     page = pages.page(params['p'])
   except django.core.paginator.EmptyPage:
-    return HttpResponseRedirect(reverse('ET:runs')+str(params.but_with('p', pages.num_pages)))
+    return HttpResponseRedirect(reverse('ET:runs')+str(params.but_with(p=pages.num_pages)))
   # Construct the navigation links.
   links = []
   if page.has_previous():
-    query_str = str(params.but_with('p', page.previous_page_number()))
+    query_str = str(params.but_with(p=page.previous_page_number()))
     links.append({'text':'< Earlier', 'query':query_str})
   if params['showtests']:
-    query_str = str(params.but_with('showtests', None))
+    query_str = str(params.but_with(showtests=None))
     links.append({'text':'Hide tests', 'query':query_str})
   else:
-    query_str = str(params.but_with('showtests', 'true'))
+    query_str = str(params.but_with(showtests='true'))
     links.append({'text':'Show tests', 'query':query_str})
   if page.has_next():
-    query_str = str(params.but_with('p', page.next_page_number()))
+    query_str = str(params.but_with(p=page.next_page_number()))
     links.append({'text':'Later >', 'query':query_str})
   context = {
     'runs':page,
