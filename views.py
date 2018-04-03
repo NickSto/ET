@@ -69,10 +69,14 @@ def valid_content_type(content_type, content_params):
 def monitor(request):
   # Get query parameters.
   params = QueryParams()
-  params.add('p', default=1, type=int)
-  params.add('perpage', default=DEFAULT_PER_PAGE, type=int)
-  params.add('format', default='html')
+  params.add('p', type=int, default=1, min=1)
+  params.add('perpage', type=int, default=DEFAULT_PER_PAGE, min=1)
+  params.add('format', default='html', choices=('html', 'plain'))
   params.parse(request.GET)
+  # If one of the parameters was invalid, redirect to a fixed url.
+  # - QueryParams object will automatically set the parameter to a valid value.
+  if params.invalid_value:
+    return HttpResponseRedirect(reverse('ET:monitor')+str(params))
   events = Event.objects.order_by('-id')
   pages = django.core.paginator.Paginator(events, params['perpage'])
   try:
@@ -101,12 +105,14 @@ def monitor(request):
 @require_admin_and_privacy
 def runs(request):
   params = QueryParams()
-  params.add('p', default=1, type=int)
-  params.add('perpage', default=DEFAULT_PER_PAGE, type=int)
-  params.add('showtests', default=False, type=boolish)
+  params.add('p', type=int, default=1, min=1)
+  params.add('perpage', type=int, default=DEFAULT_PER_PAGE, min=1)
+  params.add('showtests', type=boolish, default=False, choices=(True, False))
   params.parse(request.GET)
-  if params['p'] < 1:
-    return HttpResponseRedirect(reverse('ET:runs')+str(params.but_with(p=1)))
+  # If one of the parameters was invalid, redirect to a fixed url.
+  # - QueryParams object will automatically set the parameter to a valid value.
+  if params.invalid_value:
+    return HttpResponseRedirect(reverse('ET:runs')+str(params))
   params.copy()
   # Get the runs for this page.
   runs_dict = get_runs(Event.objects.order_by('id'))
