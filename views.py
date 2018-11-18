@@ -5,7 +5,7 @@ from django.urls import reverse
 import django.core.paginator
 from myadmin.lib import require_admin_and_privacy
 from traffic.ipinfo import set_timezone
-from utils import QueryParams, boolish
+from utils.queryparams import QueryParams, boolish
 from .models import Event
 import collections
 import json
