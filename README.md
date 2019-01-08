@@ -12,7 +12,7 @@ For example, I would give help text which explains that passing the `--phone-hom
 
 ## The data
 
-When a script is run and the `--phone-home` flag is given, it will make a connection to my server and send information on this invocation of the script.
+When a user runs one of my scripts with the `--phone-home`, it will make a connection to my server and send information on this invocation of the script.
 The data sent is focused on getting a sense of how big the jobs are that people are using my code for, and how it performs on that data.
 So if you're using one of my tools, I'd definitely appreciate the feedback!
 
@@ -34,5 +34,7 @@ Here is the full list of data which may be sent and recorded:
   - The size of the input to the script. The format depends on the script. For example, it might be the size in bytes, the number of lines, or the number of reads.
 - Whether the script was run as a Galaxy tool
 
-The script will never send the input filenames or command line parameters, as useful as these might be in determining the source of performance problems.
+My scripts will never send the input filenames or command line parameters, as useful as these might be in determining the source of performance problems.
 I'm avoiding these data since they might give too much information on the type of study being performed.
+
+Of course, the author of the particular script is responsible for what data is sent. There is a freeform JSON field which can include anything, so it's fully customizable.
