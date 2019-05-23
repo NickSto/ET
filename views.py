@@ -189,7 +189,7 @@ def get_runs(events):
       except ValueError:
         log.info('ValueError when attempting to parse JSON {!r}.'.format(event.run_data))
   for run in runs.values():
-    if not run['finished']:
+    if run['start_time'] and not run['finished']:
       # For unfinished runs, "duration" is how long it's been running so far.
       delta = now - run['start_time']
       # If it's been running for 2 days or longer, count it as AWOL (probably failed).
