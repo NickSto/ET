@@ -82,13 +82,10 @@ def main(argv):
   logging.basicConfig(stream=args.log, level=args.volume, format='%(message)s')
   tone_down_logger()
 
-  call = Call(args.script,
-              args,
-              run_id=args.run_id,
-              domain=args.domain,
-              platform=args.platform,
-              secure=args.secure,
-              test=args.test)
+  call = Call(
+    args.script, args, run_id=args.run_id, domain=args.domain, platform=args.platform,
+    secure=args.secure, test=args.test
+  )
 
   if args.run_data:
     try:
@@ -112,16 +109,10 @@ def main(argv):
 
 class Call(object):
 
-  def __init__(self,
-               script_path,
-               version,
-               run_id=None,
-               domain=DEFAULT_DOMAIN,
-               timeout=DEFAULT_TIMEOUT,
-               secure=DEFAULT_SECURE,
-               platform=None,
-               test=False,
-               fail='exception'):
+  def __init__(
+      self, script_path, version, run_id=None, domain=DEFAULT_DOMAIN, timeout=DEFAULT_TIMEOUT,
+      secure=DEFAULT_SECURE, platform=None, test=False, fail='exception'
+    ):
     self.initialized = False
     try:
       if run_id is None:
