@@ -1,8 +1,4 @@
-#!/usr/bin/env python
-from __future__ import division
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import unicode_literals
+#!/usr/bin/env python3
 import os
 import sys
 import ssl
@@ -12,18 +8,21 @@ import string
 import socket
 import random
 import logging
-import httplib
-import urlparse
+import http.client
+import urllib.parse
 import argparse
-# Protect against other modules named "version" which can end up being imported before ours
-# (like in networkx).
-if __name__ == '__main__':
-  import version
-else:
-  from . import version
+try:
+  from utillib import version
+except ImportError as error:
+  sys.stderr.write(f'Error: Could not import utillib.version: {error}\n')
+  version = None
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
-VERSION = str(version.get_version(repo_dir=SCRIPT_DIR, config_path=os.path.join(SCRIPT_DIR, 'VERSION')))
+if version is None:
+  VERSION = '?'
+else:
+  VERSION_CONFIG = os.path.join(SCRIPT_DIR, 'VERSION')
+  VERSION = str(version.get_version(repo_dir=SCRIPT_DIR, config_path=VERSION_CONFIG))
 DEFAULT_DOMAIN = 'nstoler.com'
 DEFAULT_TIMEOUT = 10  # seconds
 DEFAULT_SECURE = True
@@ -95,7 +94,7 @@ def main(argv):
     try:
       run_data = json.loads(args.run_data)
     except ValueError:
-      fail('Invalid --run-data. Must be valid JSON. Saw: "{}"'.format(args.run_data))
+      fail(f'Invalid --run-data. Must be valid JSON. Saw: {args.run_data!r}')
   else:
     run_data = {}
 
@@ -108,7 +107,7 @@ def main(argv):
       fail('--run-id and --run-time and required for event_type "end".')
     call.send_data(args.event_type, run_data=run_data, run_time=args.run_time)
   else:
-    fail('Unrecognized event type "{}".'.format(args.event_type))
+    fail(f'Unrecognized event type {args.event_type!r}.')
 
 
 class Call(object):
@@ -172,7 +171,7 @@ class Call(object):
         if not run_data:
           raise Exception('run_data argument required for "prelim" event.')
       else:
-        raise ValueError('Invalid event type "{}".'.format(event_type))
+        raise ValueError(f'Invalid event type {event_type!r}.')
       # Assemble the data blob.
       data = self.construct_data(event_type, run_time, run_data)
       data_json = json.dumps(data)
@@ -182,7 +181,7 @@ class Call(object):
       if self.fail.startswith('except'):
         raise
       elif self.fail.startswith('warn'):
-        logging.warn('Exception encountered in phone.send_{0}():\n{1}'.format(event_type, exception))
+        logging.warn(f'Exception encountered in phone.send_{event_type}():\n{exception}')
       elif self.fail == 'silent':
         pass
       return None
@@ -209,28 +208,28 @@ class Call(object):
 
 def post_data(domain, path, data, secure=DEFAULT_SECURE, timeout=DEFAULT_TIMEOUT):
   if secure:
-    conex = httplib.HTTPSConnection(domain, timeout=timeout)
+    conex = http.client.HTTPSConnection(domain, timeout=timeout)
   else:
     context = ssl._create_unverified_context()
-    conex = httplib.HTTPSConnection(domain, context=context, timeout=timeout)
-  logging.info('Sending to https://{}{}:\n{}'.format(domain, path, data))
+    conex = http.client.HTTPSConnection(domain, context=context, timeout=timeout)
+  logging.info(f'Sending to "https://{domain}{path}":\n{data}')
   try:
     conex.request('POST', path, data, HEADERS)
   except socket.gaierror:
-    sys.stderr.write('Error requesting "https://{}{}"\n'.format(domain, path))
+    logging.error(f'Error requesting "https://{domain}{path}"')
     raise
   response = conex.getresponse()
-  logging.info('HTTP response {}'.format(response.status))
+  logging.info(f'HTTP response {response.status}')
   logging.info(response.read())
   if response.status != 200:
-    fail('Sending data failed: HTTP response {}.'.format(response.status))
+    fail(f'Sending data failed: HTTP response {response.status}.')
   else:
     return True
 
 
 def split_url(url):
   # parse the URL's components
-  scheme, domain, path, query_str, frag = urlparse.urlsplit(url)
+  scheme, domain, path, query_str, frag = urllib.parse.urlsplit(url)
   if path == '':
     path = '/'
   if query_str:
