@@ -1,10 +1,10 @@
-from django.conf.urls import url
+from django.urls import re_path
 
 from . import views
 
 app_name = 'ET'
 urlpatterns = [
-  url(r'monitor', views.monitor, name='monitor'),
-  url(r'runs', views.runs, name='runs'),
-  url(r'^(?P<type>.+)$', views.record, name='record'),
+  re_path(r'monitor', views.monitor, name='monitor'),
+  re_path(r'runs', views.runs, name='runs'),
+  re_path(r'^(?P<type>.+)$', views.record, name='record'),
 ]
